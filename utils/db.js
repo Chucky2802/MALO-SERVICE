@@ -1,12 +1,10 @@
-/* db.js */
-
 import mysql from 'mysql';
 
 const con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: 'malo-crud-app'
+    host:process.env.host,
+    user:process.env.user,
+    password:process.env.password,
+    database: process.env.database
 });
 
 con.connect((err) => {
