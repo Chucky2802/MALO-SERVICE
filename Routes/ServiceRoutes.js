@@ -1,72 +1,77 @@
-import express from 'express';
-import con from '../utils/db.js';
+// Routes/ServiceRoutes.js
+import { Router } from 'express';
+import { query } from '../utils/db.js';
 
-const router = express.Router();
+export const serviceRouter = Router();
 
-router.post('/AddService', (req, res) => {
-  const sql = `INSERT INTO Services (Service_Name, Description, Category, Duration, Cost, Pricing_Strategy, Usage_Frequency, Customer_Satisfaction) VALUES (?)`;
-  const values = [
-    req.body.serviceName,
-    req.body.description,
-    req.body.category,
-    req.body.duration,
-    req.body.cost,
-    req.body.pricing,
-    req.body.usageFrequency,
-    req.body.satisfaction
-  ];
-
-  con.query(sql, [values], (err, result) => {
-    if (err) return res.json({ Status: false, Error: "Query Error" });
-    return res.json({ Status: true, Message: "Service Added Successfully!" });
-  });
+serviceRouter.post('/AddService', async (req, res) => {
+  try {
+    const sql = `INSERT INTO services
+      (service_name, description, category, duration, cost, pricing_strategy, usage_frequency, customer_satisfaction)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`;
+    const vals = [
+      req.body.serviceName,
+      req.body.description,
+      req.body.category,
+      req.body.duration,
+      req.body.cost,
+      req.body.pricing,
+      req.body.usageFrequency,
+      req.body.satisfaction
+    ];
+    await query(sql, vals);
+    return res.json({ Status: true, Message: 'Service Added Successfully!' });
+  } catch {
+    return res.json({ Status: false, Error: 'Query Error' });
+  }
 });
 
-router.get('/services', (req, res) => {
-  const sql = "SELECT * FROM Services";
-  con.query(sql, (err, result) => {
-    if (err) return res.json({ Status: false, Error: "Query Error" });
-    return res.json({ Status: true, Result: result });
-  });
+serviceRouter.get('/services', async (_req, res) => {
+  try {
+    const { rows } = await query('SELECT * FROM services');
+    return res.json({ Status: true, Result: rows });
+  } catch {
+    return res.json({ Status: false, Error: 'Query Error' });
+  }
 });
 
-router.get('/service/:ServiceID', (req, res) => {
-  const ServiceID = req.params.ServiceID;
-  const sql = "SELECT * FROM Services WHERE Id = ?";
-  
-  con.query(sql, [ServiceID], (err, result) => {
-    if (err) return res.json({ Status: false, Error: "Query Error" });
-    return res.json({ Status: true, Result: result });
-  });
+serviceRouter.get('/service/:ServiceID', async (req, res) => {
+  try {
+    const { rows } = await query('SELECT * FROM services WHERE id = $1', [req.params.ServiceID]);
+    return res.json({ Status: true, Result: rows });
+  } catch {
+    return res.json({ Status: false, Error: 'Query Error' });
+  }
 });
 
-router.put('/EditService/:ServiceID', (req, res) => {
-  const ServiceID = req.params.ServiceID;
-  const sql = `UPDATE Services SET Service_Name = ?, Description = ?, Category = ?, Duration = ?, Cost = ?, Pricing_Strategy = ?, Usage_Frequency = ?, Customer_Satisfaction = ? WHERE Id = ?`;
-  const values = [
-    req.body.serviceName,
-    req.body.description,
-    req.body.category,
-    req.body.duration,
-    req.body.cost,
-    req.body.pricing,
-    req.body.usageFrequency,
-    req.body.satisfaction
-  ];
-
-  con.query(sql, [...values, ServiceID], (err, result) => {
-    if (err) return res.json({ Status: false, Error: "Query Error" });
-    return res.json({ Status: true, Result: result });
-  });
+serviceRouter.put('/EditService/:ServiceID', async (req, res) => {
+  try {
+    const sql = `UPDATE services
+      SET service_name=$1, description=$2, category=$3, duration=$4, cost=$5, pricing_strategy=$6, usage_frequency=$7, customer_satisfaction=$8
+      WHERE id=$9`;
+    const vals = [
+      req.body.serviceName,
+      req.body.description,
+      req.body.category,
+      req.body.duration,
+      req.body.cost,
+      req.body.pricing,
+      req.body.usageFrequency,
+      req.body.satisfaction,
+      req.params.ServiceID
+    ];
+    const { rowCount } = await query(sql, vals);
+    return res.json({ Status: true, Result: { rowCount } });
+  } catch (err) {
+    return res.json({ Status: false, Error: 'Query Error' });
+  }
 });
 
-router.delete('/DeleteService/:ServiceID', (req, res) => {
-  const ServiceID = req.params.ServiceID;
-  const sql = "DELETE FROM Services WHERE Id = ?";
-  con.query(sql, [ServiceID], (err, result) => {
-    if (err) return res.json({ Status: false, Error: "Query Error: " + err });
-    return res.json({ Status: true, Result: result });
-  });
+serviceRouter.delete('/DeleteService/:ServiceID', async (req, res) => {
+  try {
+    const { rowCount } = await query('DELETE FROM services WHERE id = $1', [req.params.ServiceID]);
+    return res.json({ Status: true, Result: { rowCount } });
+  } catch (err) {
+    return res.json({ Status: false, Error: 'Query Error: ' + err });
+  }
 });
-
-export { router as serviceRouter };

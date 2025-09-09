@@ -1,31 +1,32 @@
-import express from 'express';
-import con from '../utils/db.js';
+// Routes/CategoryRoutes.js
+import { Router } from 'express';
+import { query } from '../utils/db.js';
 
-const router = express.Router();
+export const categoryRouter = Router();
 
-router.get('/category', (req, res) => {
-    const sql = "SELECT * FROM category";
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Status: false, Error: "Query Error" });
-        return res.json({ Status: true, Result: result });
-    });
+categoryRouter.get('/category', async (_req, res) => {
+  try {
+    const { rows } = await query('SELECT * FROM category');
+    return res.json({ Status: true, Result: rows });
+  } catch (err) {
+    return res.json({ Status: false, Error: 'Query Error' });
+  }
 });
 
-router.post('/AddCategory', (req, res) => {
-    const sql = "INSERT INTO category (name) VALUES (?)";
-    con.query(sql, [req.body.Category], (err, result) => {
-        if (err) return res.json({ Status: false, Error: "Query error" });
-        return res.json({ Status: true });
-    });
+categoryRouter.post('/AddCategory', async (req, res) => {
+  try {
+    await query('INSERT INTO category (name) VALUES ($1)', [req.body.Category]);
+    return res.json({ Status: true });
+  } catch (err) {
+    return res.json({ Status: false, Error: 'Query error' });
+  }
 });
 
-router.delete('/DeleteCategory/:id', (req, res) => {
-    const id = req.params.id;
-    const sql = "DELETE FROM category WHERE id = ?";
-    con.query(sql, [id], (err, result) => {
-        if (err) return res.json({ Status: false, Error: "Query Error: " + err });
-        return res.json({ Status: true, Result: result });
-    });
+categoryRouter.delete('/DeleteCategory/:id', async (req, res) => {
+  try {
+    const { rowCount } = await query('DELETE FROM category WHERE id = $1', [req.params.id]);
+    return res.json({ Status: true, Result: { rowCount } });
+  } catch (err) {
+    return res.json({ Status: false, Error: 'Query Error: ' + err });
+  }
 });
-
-export { router as categoryRouter };
