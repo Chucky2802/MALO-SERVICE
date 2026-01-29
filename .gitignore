@@ -128,3 +128,30 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+
+# ===== Added for MALO-SERVICE (safe extras) =====
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Temporary / uploads
+tmp/
+uploads/
+
+# Uploaded images (keep folder, ignore contents)
+Public/Images/*
+!Public/Images/.gitkeep
+
+# Local DB files (if ever used)
+*.sqlite
+*.sqlite3
+*.db
+
+# direnv
+.envrc
